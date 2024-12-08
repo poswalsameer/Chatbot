@@ -37,7 +37,7 @@ const apiKey = process.env.GEMINI_API_KEY;
 
 // Function to set CORS headers
 const setCorsHeaders = (response: NextResponse) => {
-  response.headers.set("Access-Control-Allow-Origin", "*"); // Replace * with specific origin if required
+  response.headers.set("Access-Control-Allow-Origin", "*"); 
   response.headers.set("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   response.headers.set("Access-Control-Allow-Headers", "Content-Type,Authorization");
   return response;
@@ -61,9 +61,9 @@ export const POST = async (request: NextRequest) => {
 
   try {
     const reqBody = await request.json();
-    const { userMessage } = reqBody;
+    const { userMessage, context } = reqBody;
 
-    if (!userMessage) {
+    if (!userMessage || !context ) {
       const response = NextResponse.json(
         { message: "Invalid request: 'userMessage' is required." },
         { status: 400 }
@@ -83,7 +83,12 @@ export const POST = async (request: NextRequest) => {
       return setCorsHeaders(response);
     }
 
-    const generatedResponse = await model.generateContent([userMessage]);
+    const contextString = `Context:\n${Object.entries(context)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join("\n")}\n\n`;
+    const fullPrompt = `${contextString}User Message: ${userMessage}`;
+
+    const generatedResponse = await model.generateContent([fullPrompt]);
 
     const responseText = generatedResponse?.response?.text();
     if (!responseText) {

@@ -56,6 +56,7 @@ export default function FarmbotForm() {
 
       const response = await axios.post("https://farmbotai.vercel.app/api/prompt", {
         userMessage: question,
+        context: formData,
       })
 
       if( response.status === 200 ){
